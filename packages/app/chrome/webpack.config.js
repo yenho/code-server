@@ -1,12 +1,11 @@
 const path = require("path");
-const webpack = require("webpack");
+const root = path.resolve(__dirname, "../../..");
 const merge = require("webpack-merge");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const prod = process.env.NODE_ENV === "production";
 
 module.exports = [
-	merge(require(path.join(__dirname, "../../../scripts", "webpack.general.config.js"))(), {
+	merge(require(path.join(__dirname, "../../../scripts", "webpack.client.config.js"))({
+		entry: path.join(root, "packages/app/chrome/src/background.ts"),
+	}), {
 		devtool: "none",
 		mode: "development",
 		target: "web",
@@ -14,13 +13,10 @@ module.exports = [
 			path: path.join(__dirname, "out"),
 			filename: "background.js",
 		},
-		entry: [
-			"./packages/app/chrome/src/background.ts"
-		],
-		plugins: [
-		]
 	}),
-	merge(require(path.join(__dirname, "../../../scripts", "webpack.general.config.js"))(), {
+	merge(require(path.join(__dirname, "../../../scripts", "webpack.client.config.js"))({
+		entry: path.join(root, "packages/app/chrome/src/content.ts"),
+	}), {
 		devtool: "none",
 		mode: "development",
 		target: "web",
@@ -28,10 +24,5 @@ module.exports = [
 			path: path.join(__dirname, "out"),
 			filename: "content.js",
 		},
-		entry: [
-			"./packages/app/chrome/src/content.ts"
-		],
-		plugins: [
-		]
 	}),
 ];

@@ -9,10 +9,13 @@ import "./tooltip.scss";
 import * as React from "react";
 import { render } from "react-dom";
 import { Main } from "./containers";
+import { TcpHostProvider, MountProvider } from "./server";
 
-export * from "./connection";
+export * from "./server";
+
 export interface App {
-	readonly tcp: TcpHost;
+	readonly tcp: TcpHostProvider;
+	readonly mount: MountProvider;
 	readonly storage: StorageProvider;
 	readonly node: HTMLElement;
 }

@@ -277,3 +277,57 @@ webview {
 	padding-top: 5px;
 	cursor: pointer;
 }
+
+.modal-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(42,46,55, 0.6);
+
+    .modal-content {
+        background-color: #FFFFFF;
+        border-radius: 5px;
+        padding-top: 21px;
+        padding-bottom: 21px;
+        padding-left: 24px;
+        padding-right: 24px;
+        max-width: 232px;
+
+        h2 {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.25px;
+            line-height: 26px;
+            margin: 0;
+            margin-bottom: 6px;
+        }
+
+        p {
+            font-size: 14px;
+            color: #717680;
+            letter-spacing: 0.2px;
+            line-height: 24px;
+            margin: 0;
+        }
+
+        .buttons {
+            margin-top: 55px;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+
+            button {
+                font-weight: bold;
+
+                &:not(:first-child) {
+                    margin-left: 20px;
+                }
+            }
+        }
+    }
+}

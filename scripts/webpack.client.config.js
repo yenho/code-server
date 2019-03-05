@@ -44,6 +44,9 @@ module.exports = (options = {}) => merge(
 			filename: "[name].css",
 			chunkFilename: "[id].css",
 		}),
+	].concat(prod ? [] : [
+		new webpack.HotModuleReplacementPlugin(),
+	]).concat(options.template ? [
 		new HtmlWebpackPlugin({
 			template: options.template,
 		}),
@@ -51,8 +54,6 @@ module.exports = (options = {}) => merge(
 			rel: "preload",
 			as: "script",
 		}),
-	].concat(prod ? [] : [
-		new webpack.HotModuleReplacementPlugin(),
-	]),
+	] : []),
 	target: "web",
 });
