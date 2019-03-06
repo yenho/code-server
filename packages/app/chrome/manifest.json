@@ -8,9 +8,16 @@
 	"permissions": [
 		"storage",
 		"webview",
+		"fileSystemProvider",
 		"http://*/*",
 		"https://*/*"
 	],
+	"file_system_provider_capabilities": {
+		"configurable": true,
+		"watchable": false,
+		"multiple_mounts": true,
+		"source": "network"
+	},
 	"app": {
 		"background": {
 			"scripts": [

@@ -7,21 +7,23 @@ import { MDCLinearProgress } from "@material/linear-progress";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { RegisteredServer } from "./app";
-
-// tslint:disable-next-line:no-any
-declare var WebSettings: any;
+import { App } from "./server";
 
 interface AuthedUser {
 	readonly username: string;
 }
 
-export class Main extends React.Component<void, {
+interface MainProps {
+	readonly app: App;
+}
+
+export class Main extends React.Component<MainProps, {
 	readonly view: "servers" | "add-server";
 	readonly loading: boolean;
 }> {
 	private webview: HTMLWebViewElement | undefined;
 
-	public constructor(props: void) {
+	public constructor(props: MainProps) {
 		super(props);
 		this.state = {
 			view: "servers",

@@ -1,18 +1,10 @@
 import { Client } from "@coder/protocol/src/browser/client";
 import { Event } from "@coder/events";
+import { IDisposable as Disposable } from "@coder/disposable";
 
-export interface IdeInstance {
-	connect(): Promise<Client>;
-
-	dispose(): void;
-}
-
-export interface TcpHostProvider {
-	create(ide: IdeInstance): TcpHost;
-}
-
-export interface TcpHost {
-	listen(host: string, port: number): Promise<TcpServer>;
+export interface Ide extends Disposable {
+	readonly server: RegisteredServer;
+	readonly client: Client;
 }
 
 export interface TcpServer {
@@ -26,27 +18,35 @@ export interface TcpConnection {
 	close(): Promise<void>;
 }
 
-export interface Mount {
+export interface ExternalWindow extends Disposable {
+	readonly id: string;
+	readonly contentWindow: Window;
+
 	dispose(): void;
 }
 
-export interface MountProvider {
-	mount(ide: IdeInstance): Mount;
-}
-
-export interface StorageProvider {
-	set<T>(key: string, value: T): Promise<void>;
-	get<T>(key: string): Promise<T | undefined>;
-}
-
-export interface Window {
-
-}
-
-export interface CreateWindowOptions {
+export interface ExternalWindowOptions {
 	readonly id: string;
 }
 
-export interface WindowProvider {
-	create(url: string, ): Promise<Window>;
+export interface App {
+	readonly domNode: HTMLElement;
+
+	setValue<T>(key: string, value: T): Promise<void>;
+	getValue<T>(key: string): Promise<T | undefined>;
+
+	handleIde(ide: Ide): IdeProvider;
+}
+
+export interface RegisteredServer {
+	readonly host: "coder" | "self";
+	readonly hostname: string;
+	readonly name: string;
+}
+
+export interface IdeProvider {
+	createWindow(url: string, options?: ExternalWindowOptions): Promise<ExternalWindow>;
+	createMount(): Promise<Disposable>;
+
+	listen(host: string, port: number): Promise<TcpServer>;
 }

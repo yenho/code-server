@@ -3,11 +3,15 @@
 // tslint:disable-next-line:no-any
 const chromeApp = (<any>chrome).app;
 
-chromeApp.runtime.onLaunched.addListener(() => {
-	chromeApp.window.create("src/index.html", {
+console.log("asd");
+
+// chromeApp.runtime.onLaunched.addListener(() => {
+	console.log("Testing");
+	
+	chromeApp.window.create("src/main/index.html", {
 		outerBounds: {
 			width: 400,
 			height: 500,
 		},
 	});
-});
+// });
