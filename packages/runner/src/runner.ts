@@ -1,5 +1,5 @@
 import * as cp from "child_process";
-import { logger, Logger, field, time } from "@coder/logger";
+import {field, Logger, logger, time} from "@coder/logger";
 
 export interface CommandResult {
 	readonly exitCode: number;
@@ -9,7 +9,9 @@ export interface CommandResult {
 
 const execute = (command: string, args: string[] = [], options: cp.SpawnOptions, logger: Logger): Promise<CommandResult> => {
 	let resolve: (result: CommandResult) => void;
-	const prom = new Promise<CommandResult>(res => resolve = res);
+	const prom = new Promise<CommandResult>((res): void => {
+		resolve = res;
+	});
 
 	const stdout: string[] = [];
 	const stderr: string[] = [];
@@ -40,10 +42,12 @@ const execute = (command: string, args: string[] = [], options: cp.SpawnOptions,
 	return prom;
 };
 
-export type TaskFunction = (runner: Runner) => void | Promise<void>;
+// tslint:disable-next-line no-any
+export type TaskFunction = (runner: Runner, ...args: any[]) => void | Promise<void>;
 
 export interface Runner {
 	cwd: string;
+
 	execute(command: string, args?: string[], env?: object): Promise<CommandResult>;
 }
 
@@ -90,12 +94,24 @@ export const run = (name: string = process.argv[2]): void | Promise<void> => {
 			cwd = path;
 		},
 		execute(command: string, args: string[] = [], env?: object): Promise<CommandResult> {
-			return execute(command, args, {
+			const prom = execute(command, args, {
 				cwd,
 				env: env as NodeJS.ProcessEnv,
 			}, log);
+
+			return prom.then((result: CommandResult) => {
+				if (result.exitCode != 0) {
+					log.error("failed",
+						field("exitCode", result.exitCode),
+						field("stdout", result.stdout),
+						field("stderr", result.stderr)
+					);
+				}
+
+				return result;
+			});
 		},
-	});
+	}, ...process.argv.slice(3));
 
 	if (prom) {
 		activated.set(name, prom);

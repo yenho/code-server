@@ -105,7 +105,7 @@ module.exports = (options = {}) => ({
 	plugins: [
 		new HappyPack({
 			id: "ts",
-			threads: os.cpus().length - 1,
+			threads: Math.max(os.cpus().length - 1, 1),
 			loaders: [{
 				path: "ts-loader",
 				query: {
@@ -118,6 +118,7 @@ module.exports = (options = {}) => ({
 			"process.env.NODE_ENV": `"${environment}"`,
 			"process.env.LOG_LEVEL": `"${process.env.LOG_LEVEL || ""}"`,
 			"process.env.SERVICE_URL": `"${process.env.SERVICE_URL || ""}"`,
+			"process.env.VERSION": `"${process.env.VERSION || ""}"`,
 		}),
 	],
 	stats: {

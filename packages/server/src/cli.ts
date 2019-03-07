@@ -2,6 +2,7 @@ import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import { fork, ForkOptions, ChildProcess } from "child_process";
+import { randomFillSync } from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -12,6 +13,7 @@ import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
 import { isCli, serveStatic, buildDir } from "./constants";
+import opn = require("opn");
 
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
@@ -26,6 +28,7 @@ export class Entry extends Command {
 		version: flags.version({ char: "v" }),
 		"no-auth": flags.boolean({ default: false }),
 		"allow-http": flags.boolean({ default: false }),
+		password: flags.string(),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
@@ -46,11 +49,11 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".code-server");
-		const workingDir = args["workdir"];
+		const dataDir = path.resolve(flags["data-dir"] || path.join(os.homedir(), ".code-server"));
+		const workingDir = path.resolve(args["workdir"]);
 
 		setupNativeModules(dataDir);
-		const builtInExtensionsDir = path.join(buildDir || path.join(__dirname, ".."), "build/extensions");
+		const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
 			if (!modulePath) {
@@ -81,8 +84,8 @@ export class Entry extends Command {
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;
 
-		const certPath = flags.cert;
-		const certKeyPath = flags["cert-key"];
+		const certPath = flags.cert ? path.resolve(flags.cert) : undefined;
+		const certKeyPath = flags["cert-key"] ? path.resolve(flags["cert-key"]) : undefined;
 
 		if (certPath && !certKeyPath) {
 			logger.error("'--cert-key' flag is required when specifying a certificate!");
@@ -113,7 +116,7 @@ export class Entry extends Command {
 			}
 		}
 
-		logger.info("\u001B[1mcode-server v1.0.0");
+		logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 		// TODO: fill in appropriate doc url
 		logger.info("Additional documentation: http://github.com/codercom/code-server");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
@@ -132,13 +135,13 @@ export class Entry extends Command {
 			}
 		});
 
-		const passwordLength = 12;
-		const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-		const chars = [];
-		for (let i = 0; i < passwordLength; i++) {
-			chars.push(possible[Math.floor(Math.random() * possible.length)]);
+		let password = flags.password;
+		if (!password) {
+			// Generate a random password with a length of 24.
+			const buffer = Buffer.alloc(12);
+			randomFillSync(buffer);
+			password = buffer.toString("hex");
 		}
-		const password = chars.join("");
 
 		const hasCustomHttps = certData && certKeyData;
 		const app = await createApp({
@@ -155,7 +158,7 @@ export class Entry extends Command {
 				// If we're not running from the binary and we aren't serving the static
 				// pre-built version, use webpack to serve the web files.
 				if (!isCli && !serveStatic) {
-					const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
+					const webpackConfig = require(path.resolve(__dirname, "..", "..", "web", "webpack.config.js"));
 					const compiler = require("webpack")(webpackConfig);
 					app.use(require("webpack-dev-middleware")(compiler, {
 						logger,
@@ -218,10 +221,20 @@ export class Entry extends Command {
 		} else {
 			logger.warn("Launched without authentication.");
 		}
+
+		const url = `http://localhost:${flags.port}/`;
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
-		logger.info(`http://localhost:${flags.port}/`);
+		logger.info(url);
 		logger.info(" ");
+
+		if (flags["open"]) {
+			try {
+				await opn(url);
+			} catch (e) {
+				logger.warn("Url couldn't be opened automatically.", field("url", url), field("exception", e));
+			}
+		}
 	}
 }
 
