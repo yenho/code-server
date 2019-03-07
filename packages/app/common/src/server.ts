@@ -34,7 +34,8 @@ export interface App {
 
 	setValue<T>(key: string, value: T): Promise<void>;
 	getValue<T>(key: string): Promise<T | undefined>;
-
+	
+	createWindow(url: string, options?: ExternalWindowOptions): Promise<ExternalWindow>;
 	handleIde(ide: Ide): IdeProvider;
 }
 
@@ -45,8 +46,6 @@ export interface RegisteredServer {
 }
 
 export interface IdeProvider {
-	createWindow(url: string, options?: ExternalWindowOptions): Promise<ExternalWindow>;
 	createMount(): Promise<Disposable>;
-
 	listen(host: string, port: number): Promise<TcpServer>;
 }

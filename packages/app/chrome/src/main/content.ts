@@ -4,7 +4,19 @@ import { IDisposable } from "@coder/disposable/src";
 
 const app: App = {
 	domNode: document.getElementById("main") as HTMLDivElement,
+	createWindow: (url: string, options?: ExternalWindowOptions): Promise<ExternalWindow> => {
+		const chromeWindow = (<any>chrome).app.window;
 
+		return new Promise<ExternalWindow>((resolve, reject) => {
+			try {
+				chromeWindow.create(url, options, (externalWindow: ExternalWindow): void => {
+					resolve(externalWindow);
+				});
+			} catch (ex) {
+				reject(ex);
+			}
+		});
+	},
 	handleIde: (ide: Ide): IdeProvider => {
 		return {
 			createMount: (): Promise<IDisposable> => {
@@ -25,19 +37,6 @@ const app: App = {
 							},
 						});
 					});
-				});
-			},
-			createWindow: (url: string, options?: ExternalWindowOptions): Promise<ExternalWindow> => {
-				const chromeWindow = (<any>chrome).app.window;
-
-				return new Promise<ExternalWindow>((resolve, reject) => {
-					try {
-						chromeWindow.create(url, options, (externalWindow: ExternalWindow): void => {
-							resolve(externalWindow);
-						});
-					} catch (ex) {
-						reject(ex);
-					}
 				});
 			},
 			listen: (host: string, port: number): Promise<TcpServer> => {

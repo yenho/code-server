@@ -21,8 +21,6 @@ export class Main extends React.Component<MainProps, {
 	readonly view: "servers" | "add-server";
 	readonly loading: boolean;
 }> {
-	private webview: HTMLWebViewElement | undefined;
-
 	public constructor(props: MainProps) {
 		super(props);
 		this.state = {
@@ -34,33 +32,33 @@ export class Main extends React.Component<MainProps, {
 	public componentDidMount(): void {
 		window.addEventListener("message", (event) => {
 			if (event.data === "back") {
-				if (this.webview) {
-					this.webview.classList.remove("active");
-				}
+				// if (this.webview) {
+				// 	this.webview.classList.remove("active");
+				// }
 			}
 			if (event.data === "loaded") {
-				if (this.webview) {
-					// this.setState({ loading: false });
-					// this.webview.classList.add("active");
-				}
+				// if (this.webview) {
+				// 	// this.setState({ loading: false });
+				// 	// this.webview.classList.add("active");
+				// }
 			}
 		});
 
-		if (this.webview) {
-			this.webview.addEventListener("error", (event) => {
-				console.error(event);
-			});
-			this.webview.addEventListener("loadstart", (event) => {
-					this.setState({ loading: true });
-			});
-			this.webview.addEventListener("loadstop", (event) => {
-				this.setState({ loading: false });
-				this.webview!.classList.add("active");
-				// tslint:disable-next-line:no-any
-				const cw = (this.webview as any).contentWindow as Window;
-				cw.postMessage("app", "*");
-			});
-		}
+		// if (this.webview) {
+		// 	this.webview.addEventListener("error", (event) => {
+		// 		console.error(event);
+		// 	});
+		// 	this.webview.addEventListener("loadstart", (event) => {
+		// 			this.setState({ loading: true });
+		// 	});
+		// 	this.webview.addEventListener("loadstop", (event) => {
+		// 		this.setState({ loading: false });
+		// 		this.webview!.classList.add("active");
+		// 		// tslint:disable-next-line:no-any
+		// 		const cw = (this.webview as any).contentWindow as Window;
+		// 		cw.postMessage("app", "*");
+		// 	});
+		// }
 	}
 
 	public render(): JSX.Element {
@@ -72,7 +70,7 @@ export class Main extends React.Component<MainProps, {
 					</div>
 				</div>
 				<div className="content">
-				<Modal>
+				{/* <Modal>
 					<h2>
 						Delete Server?
 					</h2>
@@ -88,7 +86,7 @@ export class Main extends React.Component<MainProps, {
 							Delete
 						</Button>
 					</div>
-				</Modal>
+				</Modal> */}
 				{((): JSX.Element => {
 					switch (this.state.view) {
 						case "servers":
@@ -109,9 +107,12 @@ export class Main extends React.Component<MainProps, {
 									username: "Kyle",
 								}}
 								onSelect={(server): void => {
-									if (this.webview) {
-										this.webview.setAttribute("src", server.hostname);
-									}
+									this.setState({ loading: true });
+									this.props.app.createWindow("/src/ide/ide.html").then((window) => {
+										window.contentWindow.postMessage("GOGOGO", "*");
+									}).catch((ex) => {
+										this.setState({ loading: false });
+									});
 								}}
 								onAddServer={() => this.setState({ view: "add-server" })}
 								loading={this.state.loading}
