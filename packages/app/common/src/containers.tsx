@@ -7,7 +7,8 @@ import { MDCLinearProgress } from "@material/linear-progress";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { RegisteredServer } from "./app";
-import { App } from "./server";
+import { App, ServerMessage } from "./server";
+import { runInServerWindow } from "./scripts";
 
 interface AuthedUser {
 	readonly username: string;
@@ -18,13 +19,13 @@ interface MainProps {
 }
 
 export class Main extends React.Component<MainProps, {
-	readonly view: "servers" | "add-server";
+	readonly view: undefined | "add-server";
 	readonly loading: boolean;
 }> {
 	public constructor(props: MainProps) {
 		super(props);
 		this.state = {
-			view: "servers",
+			view: undefined,
 			loading: false,
 		};
 	}
@@ -87,45 +88,50 @@ export class Main extends React.Component<MainProps, {
 						</Button>
 					</div>
 				</Modal> */}
-				{((): JSX.Element => {
+				<Servers servers={[
+						{
+							connection: {
+								type: "web",
+								hostname: "https://coder.com/login",
+							},
+							hostname: "--",
+							name: "Coder",
+						}, {
+							connection: {
+								type: "web",
+								hostname: "https://ide.kwc.io",
+							},
+							hostname: "https://ide.kwc.io",
+							name: "Dev Server",
+						},
+					]}
+					user={{
+						username: "Kyle",
+					}}
+					onSelect={(server): void => {
+						this.setState({ loading: true });
+						this.props.app.createWindow("/src/ide/ide.html").then((window) => {
+							window.contentWindow.addEventListener("load", () => {
+								runInServerWindow(window.contentWindow, server);
+							});
+						}).catch((ex) => {
+							this.setState({ loading: false });
+						});
+					}}
+					onAddServer={() => this.setState({ view: "add-server" })}
+					loading={this.state.loading}
+				/>
+				{((): JSX.Element | undefined => {
 					switch (this.state.view) {
-						case "servers":
-							return (
-								<Servers servers={[
-									{
-										host: "coder",
-										hostname: "--",
-										name: "Coder",
-									},
-									{
-										host: "self",
-										hostname: "https://ide.kwc.io",
-										name: "Dev Server",
-									},
-								]}
-								user={{
-									username: "Kyle",
-								}}
-								onSelect={(server): void => {
-									this.setState({ loading: true });
-									this.props.app.createWindow("/src/ide/ide.html").then((window) => {
-										window.contentWindow.postMessage("GOGOGO", "*");
-									}).catch((ex) => {
-										this.setState({ loading: false });
-									});
-								}}
-								onAddServer={() => this.setState({ view: "add-server" })}
-								loading={this.state.loading}
-								/>
-							);
+						case undefined:
+							return undefined;
 						case "add-server":
 							return (
-								<div>Add server</div>
+								<AddServerModal />
 							);
 					}
 				})()}
 				</div>
-				<webview ref={(wv: HTMLWebViewElement): HTMLWebViewElement => this.webview = wv}></webview>
 			</div>
 		);
 	}
@@ -535,6 +541,71 @@ export class Logo extends React.Component {
 	</g>
 </g>
 </svg>
+		);
+	}
+}
+
+interface AddServerModalState {
+	readonly method: undefined | "ssh" | "hostname";
+}
+
+export class AddServerModal extends React.Component<{}, AddServerModalState> {
+	public constructor(props: {}) {
+		super(props);
+
+		this.state = {
+			method: undefined,
+		};
+	}
+	
+	public render(): JSX.Element {
+		return (
+			<Modal>
+				<h3>Add Server</h3>
+				<div>
+					{this.state.method}
+				</div>
+				{((): JSX.Element => {
+					switch (this.state.method) {
+						// Show this
+						case undefined:
+							return (
+								<>
+									<p>
+										Some placeholder text here to add your own server into here.
+									</p>
+									<div className="buttons">
+										<div className="hostname" onClick={() => this.setState({ method: "hostname" })}>
+											Hostname
+										</div>
+										<div className="ssh" onClick={() => this.setState({ method: "ssh" })}>
+											SSH
+										</div>
+									</div>
+								</>
+							);
+						case "hostname":
+							return (
+								<>
+									<Input id="hostname" label="Hostname" />
+									<Input id="port" label="Port" />
+								</>
+							);
+						case "ssh":
+							return (
+								<>
+									<Input id="hostname" label="SSH Hostname" />
+									<Input id="port" label="SSH Port" />
+									<Input id="http-port" label="code-server http port" />
+									<Input id="password" label="Password" type="password" />
+								</>
+							);
+					}
+				})()}
+				<p>
+					Some placeholder text here to add your own server into here.
+				</p>
+			</Modal>
 		);
 	}
 }

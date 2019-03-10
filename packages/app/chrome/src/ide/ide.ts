@@ -1,8 +1,3 @@
-let closeTimeout: NodeJS.Timer | undefined; 
+import { runWithIdeWindow } from "@coder/app/common/src/scripts";
 
-window.addEventListener("message", (event) => {
-    if (closeTimeout) {
-        clearTimeout(closeTimeout);
-    }
-    
-});
+runWithIdeWindow();

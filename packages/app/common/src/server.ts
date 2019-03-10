@@ -39,10 +39,40 @@ export interface App {
 	handleIde(ide: Ide): IdeProvider;
 }
 
+export interface RegisteredServerSshConnection {
+	readonly type: "ssh";
+
+	readonly hostname: string;
+	readonly sshPort: number;
+	readonly codeServerPort?: number;
+	readonly password?: string;
+	readonly identity?: string;
+}
+
+export interface RegisteredServerWebConnection {
+	readonly type: "web";
+
+	readonly hostname: string;
+}
+
+export interface ServerWindowMessage {
+	readonly type: "server";
+	readonly server: RegisteredServer;
+}
+
+export interface ServerIdeMessage {
+	readonly type: "ide";
+}
+
+export type ServerMessage = ServerWindowMessage | ServerIdeMessage;
+
+export type RegisteredServerConnection = RegisteredServerSshConnection | RegisteredServerWebConnection;
+
 export interface RegisteredServer {
 	readonly host: "coder" | "self";
-	readonly hostname: string;
 	readonly name: string;
+
+	readonly connection: RegisteredServerConnection;
 }
 
 export interface IdeProvider {

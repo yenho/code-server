@@ -2,6 +2,10 @@ import { create, App, Ide, IdeProvider, ExternalWindowOptions, ExternalWindow, T
 import { tcpHost } from "./tcp";
 import { IDisposable } from "@coder/disposable/src";
 
+window.addEventListener("message", (event) => {
+	console.log("GOT MSG", event.data);
+});
+
 const app: App = {
 	domNode: document.getElementById("main") as HTMLDivElement,
 	createWindow: (url: string, options?: ExternalWindowOptions): Promise<ExternalWindow> => {
@@ -9,7 +13,11 @@ const app: App = {
 
 		return new Promise<ExternalWindow>((resolve, reject) => {
 			try {
-				chromeWindow.create(url, options, (externalWindow: ExternalWindow): void => {
+				chromeWindow.create(url, {
+					...(options || {}),
+					// frame: "none",
+					state: "maximized",
+				}, (externalWindow: ExternalWindow): void => {
 					resolve(externalWindow);
 				});
 			} catch (ex) {

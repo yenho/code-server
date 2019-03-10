@@ -30,6 +30,11 @@
 			]
 		}
 	},
+	"content_scripts": [{
+		"matches": ["http://*/*", "https://*/*"],
+		"js": ["out/ide.js"],
+		"all_frames": true
+	}],	
 	"commands": {
 		"toggle-feature-foo": {
 			"suggested_key": {
