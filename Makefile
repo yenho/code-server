@@ -9,4 +9,7 @@ init:
 	tar zxvf code-server-1.31.1-100-linux-x64.tar.gz
 	mv code-server-1.31.1-100-linux-x64 coderom
 
+clean:
+	rm code-server-1.31.1-100-linux-x64.tar.gz
+
 .PHONY: all stop clean init
