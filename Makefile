@@ -4,7 +4,9 @@ all:
 		codercom/code-server --allow-http --no-auth
 
 stop:
-	docker kill $(docker ps -q) || true
+	echo $(docker ps -q)
+	scripts/kill_ps.sh
+#	@docker kill $(docker ps -q) || true
 
 init:
 	wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-server-1.31.1-100-linux-x64.tar.gz
